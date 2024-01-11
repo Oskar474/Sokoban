@@ -1,4 +1,3 @@
-Simple sokoban game made in c++ using ncurses library.
 
 
 Controls:
@@ -9,6 +8,7 @@ restart - r
 
 quit - q
 
+-----------
 
 Symbols legend:
 

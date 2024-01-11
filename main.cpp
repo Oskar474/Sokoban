@@ -35,7 +35,7 @@ class GameData {
 private:
     int winCondition = 0;
     int winCounter = 0;
-    int level = 1;
+    int level = 5;
     int tryCounter = 1;
     int lastLevel = 5;
 public:
@@ -155,7 +155,9 @@ public:
 
     void printBoard() {
         clear();
+        printw("%c",'\n');
         for (int i = 0; i < rows; ++i) {
+        	printw("%c ",  ' ');
             for (int j = 0; j < cols; ++j) {
                 printInColour(board[i][j]);
             }
@@ -247,12 +249,13 @@ private:
 
     bool isWall(int newPositionY, int newPositionX) {
         if (gameBoard.getBoard()[newPositionY][newPositionX] != '#')
-            return true;
+            return false;
+        return true;
     }
 
     void movePlayer(int newPositionY, int newPositionX) {
 
-        if (isWall(newPositionY, newPositionX)) {
+        if (!isWall(newPositionY, newPositionX)) {
             if (gameBoard.getBoard()[newPositionY][newPositionX] == boxSymbol or
                 gameBoard.getBoard()[newPositionY][newPositionX] == winSymbol) {
 
@@ -317,14 +320,14 @@ public:
         clear();
 
         if (gameData.getLevel() + 1 >= gameData.getLastLevel()) {
-            printw("\n\n\n\n\n    You Won!");
-            printw("\n\n\n\n\nPress q to quit...");
+            printw("\n\n\n\n\n      You Won!");
+            printw("\n\n\n\n\n  Press q to quit...");
             while ((ch = getch()) != 'q') {
             }
             exit(0);
         }
-        printw("\n\n\n\n\n        Good Job!");
-        printw("\n\n\n\nPress Enter to continue...");
+        printw("\n\n\n\n\n          Good Job!");
+        printw("\n\n\n\n  Press Enter to continue...");
     }
 };
 

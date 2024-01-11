@@ -1,11 +1,11 @@
-#include <ncursesw/curses.h>
-//#include <ncurses.h>
+//#include <ncursesw/curses.h>
+#include <ncurses.h>
 #include <iostream>
 #include <string>
 #include <fstream>
 #include <stdlib.h>
 
-void ncurses_config() {
+void ncursesConfig() {
     curs_set(0);
     keypad(stdscr, TRUE);
     timeout(100);
@@ -31,7 +31,7 @@ namespace symbols {
 using namespace symbols;
 int ch;
 
-class GameLogic {
+class GameData {
 private:
     int winCondition = 0;
     int winCounter = 0;
@@ -72,43 +72,13 @@ public:
 
 };
 
-GameLogic logic;
-
 class Board {
 private:
     int rows;
     int cols;
     char board[32][32];
     char sample[32][32];
-public:
-
-    char (&getBoard())[32][32] {
-        return board;
-    }
-
-    int getRows() {
-        return rows;
-    }
-
-    int getCols() {
-        return cols;
-    }
-
-    void setRows(int row) {
-        rows = row;
-    }
-
-    void setCols(int col) {
-        cols = col;
-    }
-
-    void setBoard(int i, int o, char symbol) {
-        board[i][o] = symbol;
-    }
-
-    void setSample(int i, int o, char symbol) {
-        sample[i][o] = symbol;
-    }
+    GameData &gameData;
 
     void printInColour(char symbol) {
         int colourNumber;
@@ -146,6 +116,39 @@ public:
         attroff(colourNumber);
     }
 
+public:
+
+    Board(GameData &GameData) : gameData(GameData) {}
+
+    char (&getBoard())[32][32] {
+        return board;
+    }
+
+    int getRows() {
+        return rows;
+    }
+
+    int getCols() {
+        return cols;
+    }
+
+    void setRows(int row) {
+        rows = row;
+    }
+
+    void setCols(int col) {
+        cols = col;
+    }
+
+    void setBoard(int i, int o, char symbol) {
+        board[i][o] = symbol;
+    }
+
+    void setSample(int i, int o, char symbol) {
+        sample[i][o] = symbol;
+    }
+
+
     void printBoard() {
         clear();
         for (int i = 0; i < rows; ++i) {
@@ -155,16 +158,16 @@ public:
             attron(COLOR_PAIR(6));
             if (i == 2) {
                 printw("     level: ");
-                printw("%d", logic.getLevel());
+                printw("%d", gameData.getLevel());
             }
             if (i == 3) {
                 printw("     try: ");
-                printw("%d", logic.getTryCounter());
+                printw("%d", gameData.getTryCounter());
             }
             if (i == 4) {
-                if (logic.getTryCounter() >= 10 && logic.getTryCounter() < 20)
+                if (gameData.getTryCounter() >= 10 && gameData.getTryCounter() < 20)
                     printw("     Are you playing without a screen? ");
-                if (logic.getTryCounter() >= 20)
+                if (gameData.getTryCounter() >= 20)
                     printw("     I'm tired, boss... ");
             }
             printw("\n");
@@ -189,31 +192,30 @@ public:
                     tempCounter++;
             }
         if (tempCounter != winOld) {
-            logic.setWinCounter(tempCounter);
+            gameData.setWinCounter(tempCounter);
             winOld = tempCounter;
         }
-        if (logic.getWinCounter() == logic.getWinCondition()) {
-            logic.incrementLevel();
-            logic.setWinCounter(0);
+        if (gameData.getWinCounter() == gameData.getWinCondition()) {
+            gameData.incrementLevel();
+            gameData.setWinCounter(0);
         }
     }
 };
 
-Board boardObj;
 
 class Player {
 private:
     int playerPositionY = 0;
     int playerPositionX = 0;
-    char (&board)[32][32];
+    Board &gameBoard;
 
     void moveBox(int X, int Y, int &newPositionY, int &newPositionX) {
-        if (board[newPositionY + Y][newPositionX + X] == targetSymbol)
-            board[newPositionY + Y][newPositionX + X] = winSymbol;
-        else if (board[newPositionY + Y][newPositionX + X] != wallSymbol &&
-                 board[newPositionY + Y][newPositionX + X] != boxSymbol &&
-                 board[newPositionY + Y][newPositionX + X] != winSymbol)
-            board[newPositionY + Y][newPositionX + X] = boxSymbol;
+        if (gameBoard.getBoard()[newPositionY + Y][newPositionX + X] == targetSymbol)
+            gameBoard.getBoard()[newPositionY + Y][newPositionX + X] = winSymbol;
+        else if (gameBoard.getBoard()[newPositionY + Y][newPositionX + X] != wallSymbol &&
+                 gameBoard.getBoard()[newPositionY + Y][newPositionX + X] != boxSymbol &&
+                 gameBoard.getBoard()[newPositionY + Y][newPositionX + X] != winSymbol)
+            gameBoard.getBoard()[newPositionY + Y][newPositionX + X] = boxSymbol;
         else
             switch (X) {
                 case -1:
@@ -230,23 +232,25 @@ private:
                     break;
             }
     }
-    void finalizeMovement(int newPositionY, int newPositionX){
-        board[playerPositionY][playerPositionX] = emptySymbol;
+
+    void finalizeMovement(int newPositionY, int newPositionX) {
+        gameBoard.getBoard()[playerPositionY][playerPositionX] = emptySymbol;
         playerPositionY = newPositionY;
         playerPositionX = newPositionX;
-        board[newPositionY][newPositionX] = playerSymbol;
-        boardObj.printTargets();
+        gameBoard.getBoard()[newPositionY][newPositionX] = playerSymbol;
+        gameBoard.printTargets();
     }
 
-    bool isWall(int newPositionY, int newPositionX){
-        if (board[newPositionY][newPositionX] != '#')
+    bool isWall(int newPositionY, int newPositionX) {
+        if (gameBoard.getBoard()[newPositionY][newPositionX] != '#')
             return true;
     }
 
     void movePlayer(int newPositionY, int newPositionX) {
 
-        if (isWall(newPositionY,newPositionX)) {
-            if (board[newPositionY][newPositionX] == boxSymbol or board[newPositionY][newPositionX] == winSymbol) {
+        if (isWall(newPositionY, newPositionX)) {
+            if (gameBoard.getBoard()[newPositionY][newPositionX] == boxSymbol or
+                gameBoard.getBoard()[newPositionY][newPositionX] == winSymbol) {
 
                 //down
                 if (playerPositionY < newPositionY)
@@ -269,8 +273,8 @@ private:
     }
 
 public:
-
-    Player(Board &gameBoard) : board(gameBoard.getBoard()) {}
+    Player(Board &board) : gameBoard(board) {
+    }
 
     void setplayerPositionY(int Y) {
         playerPositionY = Y;
@@ -299,11 +303,16 @@ public:
 };
 
 class MessagePrinter {
+private:
+    GameData &gameData;
+
 public:
+    MessagePrinter(GameData &gameData) : gameData(gameData) {}
+
     void printer() {
         clear();
 
-        if (logic.getLevel() + 1 >= 7) {
+        if (gameData.getLevel() + 1 >= 7) {
             printw("\n\n\n\n\n    You Won!");
             printw("\n\n\n\n\nPress q to quit...");
             while ((ch = getch()) != 'q') {
@@ -323,21 +332,25 @@ private:
     int board2sizeY = 0;
     bool isCounted = false;
 
-    void loadBoard(char boardx[32][32], Player &player) {
-        boardObj.setRows(board2sizeX);
-        boardObj.setCols(board2sizeY);
-        for (int i = 0; i <= boardObj.getRows(); i++)
-            for (int o = 0; o <= boardObj.getCols(); o++) {
+    Board &gameBoard;
+    GameData &gameData;
+    Player &player;
+
+    void loadBoard(char boardx[32][32]) {
+        gameBoard.setRows(board2sizeX);
+        gameBoard.setCols(board2sizeY);
+        for (int i = 0; i <= gameBoard.getRows(); i++)
+            for (int o = 0; o <= gameBoard.getCols(); o++) {
                 if (boardx[i][o] == targetSymbol && !isCounted)
-                    logic.setWinCondition(logic.getWinCondition() + 1);
+                    gameData.setWinCondition(gameData.getWinCondition() + 1);
                 if (boardx[i][o] == playerSymbol) {
                     player.setplayerPositionX(o);
                     player.setplayerPositionY(i);
-                    boardObj.setSample(i, o, emptySymbol);
-                    boardObj.setBoard(i, o, playerSymbol);
+                    gameBoard.setSample(i, o, emptySymbol);
+                    gameBoard.setBoard(i, o, playerSymbol);
                 } else {
-                    boardObj.setBoard(i, o, boardx[i][o]);
-                    boardObj.setSample(i, o, boardx[i][o]);
+                    gameBoard.setBoard(i, o, boardx[i][o]);
+                    gameBoard.setSample(i, o, boardx[i][o]);
                 }
             }
         isCounted = true;
@@ -391,32 +404,39 @@ private:
 
 public:
 
-    void loader(int lv, Player &player) {
+    fileHandling(Board &board, GameData &gameData, Player &player) : gameBoard(board), gameData(gameData), player(player) {}
+
+
+    void loader() {
         isCounted = false;
-        logic.setWinCondition(0);
-        logic.setWinCounter(0);
-        std::string temp = std::to_string(lv);
+        gameData.setWinCondition(0);
+        gameData.setWinCounter(0);
+
+        std::string temp = std::to_string(gameData.getLevel());
         std::string fileName = "map" + temp + ".txt";
+
         getMap(fileName);
-        loadBoard(board2, player);
+        loadBoard(board2);
     }
 };
 
 int main() {
     WINDOW *mainwin = initscr();
-    ncurses_config();
-    MessagePrinter printer;
-    fileHandling map;
+    ncursesConfig();
+    GameData gameData;
+    Board boardObj(gameData);
+    MessagePrinter printer(gameData);
     Player player(boardObj);
-    map.loader(logic.getLevel(), player);
+    fileHandling map(boardObj, gameData, player);
+    map.loader();
     int levOld;
 
     while ((ch = getch()) != 'q') {
-        levOld = logic.getLevel();
+        levOld = gameData.getLevel();
         switch (ch) {
             case 'r':
-                map.loader(logic.getLevel(), player);
-                logic.setTryCounter(logic.getTryCounter() + 1);
+                map.loader();
+                gameData.setTryCounter(gameData.getTryCounter() + 1);
                 break;
             case KEY_UP:
                 player.moveUp();
@@ -433,13 +453,13 @@ int main() {
         }
         boardObj.printBoard();
         boardObj.checkWin();
-        if (levOld != logic.getLevel()) {
+        if (levOld != gameData.getLevel()) {
             printer.printer();
             while ((ch = getch()) != 10);
-            logic.setTryCounter(1);
-            map.loader(logic.getLevel(), player);
+            gameData.setTryCounter(1);
+            map.loader();
         }
     }
-    endwin();  // Clean up ncurses
+    endwin();
     return 0;
 }

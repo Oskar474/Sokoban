@@ -1,4 +1,4 @@
-
+-----------
 
 Controls:
 
@@ -23,3 +23,5 @@ Symbols legend:
 '!' - box on a target
 
 'P' - player
+
+-----------

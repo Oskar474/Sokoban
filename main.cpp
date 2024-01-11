@@ -1,5 +1,5 @@
-//#include <ncursesw/curses.h>
-#include <ncurses.h>
+#include <ncursesw/curses.h>
+//#include <ncurses.h>
 #include <iostream>
 #include <string>
 #include <fstream>
@@ -110,7 +110,7 @@ public:
         sample[i][o] = symbol;
     }
 
-    void PrintInColour(char symbol) {
+    void printInColour(char symbol) {
         int colourNumber;
         switch (symbol) {
             case wallSymbol:
@@ -150,7 +150,7 @@ public:
         clear();
         for (int i = 0; i < rows; ++i) {
             for (int j = 0; j < cols; ++j) {
-                PrintInColour(board[i][j]);
+                printInColour(board[i][j]);
             }
             attron(COLOR_PAIR(6));
             if (i == 2) {
@@ -207,7 +207,7 @@ private:
     int playerPositionX = 0;
     char (&board)[32][32];
 
-    void spawner(int X, int Y, int &newPositionY, int &newPositionX) {
+    void moveBox(int X, int Y, int &newPositionY, int &newPositionX) {
         if (board[newPositionY + Y][newPositionX + X] == targetSymbol)
             board[newPositionY + Y][newPositionX + X] = winSymbol;
         else if (board[newPositionY + Y][newPositionX + X] != wallSymbol &&
@@ -230,34 +230,41 @@ private:
                     break;
             }
     }
+    void finalizeMovement(int newPositionY, int newPositionX){
+        board[playerPositionY][playerPositionX] = emptySymbol;
+        playerPositionY = newPositionY;
+        playerPositionX = newPositionX;
+        board[newPositionY][newPositionX] = playerSymbol;
+        boardObj.printTargets();
+    }
+
+    bool isWall(int newPositionY, int newPositionX){
+        if (board[newPositionY][newPositionX] != '#')
+            return true;
+    }
 
     void movePlayer(int newPositionY, int newPositionX) {
 
-        if (board[newPositionY][newPositionX] != '#') {
+        if (isWall(newPositionY,newPositionX)) {
             if (board[newPositionY][newPositionX] == boxSymbol or board[newPositionY][newPositionX] == winSymbol) {
 
                 //down
                 if (playerPositionY < newPositionY)
-                    spawner(0, 1, newPositionY, newPositionX);
+                    moveBox(0, 1, newPositionY, newPositionX);
 
                 //up
                 if (playerPositionY > newPositionY)
-                    spawner(0, -1, newPositionY, newPositionX);
+                    moveBox(0, -1, newPositionY, newPositionX);
 
                 //left
                 if (playerPositionX > newPositionX)
-                    spawner(-1, 0, newPositionY, newPositionX);
+                    moveBox(-1, 0, newPositionY, newPositionX);
 
                 //right
                 if (playerPositionX < newPositionX)
-                    spawner(1, 0, newPositionY, newPositionX);
+                    moveBox(1, 0, newPositionY, newPositionX);
             }
-
-            board[playerPositionY][playerPositionX] = emptySymbol;
-            playerPositionY = newPositionY;
-            playerPositionX = newPositionX;
-            board[newPositionY][newPositionX] = playerSymbol;
-            boardObj.printTargets();
+            finalizeMovement(newPositionY, newPositionX);
         }
     }
 

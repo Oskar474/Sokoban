@@ -35,7 +35,7 @@ class GameData {
 private:
     int winCondition = 0;
     int winCounter = 0;
-    int level = 5;
+    int level = 1;
     int tryCounter = 1;
     int lastLevel = 5;
 public:

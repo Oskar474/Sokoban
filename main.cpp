@@ -37,7 +37,11 @@ private:
     int winCounter = 0;
     int level = 1;
     int tryCounter = 1;
+    int lastLevel = 5;
 public:
+	int getLastLevel(){
+		return lastLevel;
+	}
     void setWinCondition(int win) {
         winCondition = win;
     }
@@ -312,7 +316,7 @@ public:
     void printer() {
         clear();
 
-        if (gameData.getLevel() + 1 >= 7) {
+        if (gameData.getLevel() + 1 >= gameData.getLastLevel()) {
             printw("\n\n\n\n\n    You Won!");
             printw("\n\n\n\n\nPress q to quit...");
             while ((ch = getch()) != 'q') {

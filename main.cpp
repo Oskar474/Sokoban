@@ -218,9 +218,7 @@ private:
     void moveBox(int X, int Y, int &newPositionY, int &newPositionX) {
         if (gameBoard.getBoard()[newPositionY + Y][newPositionX + X] == targetSymbol)
             gameBoard.getBoard()[newPositionY + Y][newPositionX + X] = winSymbol;
-        else if (gameBoard.getBoard()[newPositionY + Y][newPositionX + X] != wallSymbol &&
-                 gameBoard.getBoard()[newPositionY + Y][newPositionX + X] != boxSymbol &&
-                 gameBoard.getBoard()[newPositionY + Y][newPositionX + X] != winSymbol)
+        else if (gameBoard.getBoard()[newPositionY + Y][newPositionX + X] == emptySymbol)
             gameBoard.getBoard()[newPositionY + Y][newPositionX + X] = boxSymbol;
         else
             switch (X) {
